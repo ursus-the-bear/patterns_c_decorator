@@ -23,6 +23,7 @@ typedef struct _topping {
 typedef struct _order {
     
     pizza_t pizza;
+    
     // something else? list of toppings?
     
 } order_t;
