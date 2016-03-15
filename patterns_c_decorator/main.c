@@ -1,48 +1,58 @@
 #include <stdio.h>
 
+typedef struct _toppingDecorator toppingDecorator_t;
+
 typedef struct _pizza {
-    double (* getCost) ();
+    double (* getCost) (toppingDecorator_t * self);
 } pizza_t;
 
 typedef struct _toppingDecorator {
-    double (* getCost) ();
+    
     pizza_t tempPizza;
+    pizza_t * delegate;
+    
 } toppingDecorator_t;
 
+typedef struct _topping {
+    
+    toppingDecorator_t methods;
+    pizza_t * delegate;
+    
+} topping_t;
+
+typedef struct _order {
+    
+    pizza_t pizza;
+    // something else? list of toppings?
+    
+} order_t;
+
 // these are the pizzas
-double plainPizzaCost () {
+double plainPizzaCost (toppingDecorator_t * self) {
     return 5;
-}
-double thickCrustPizzaCost () {
-    return 7;
 }
 
 // these are the toppings
 double mozzarellaCost (toppingDecorator_t * self) {
-    return self->tempPizza.getCost () + 3.0;
+    return 3.0;
 }
 double tomatoCost (toppingDecorator_t * self) {
-    return self->tempPizza.getCost () + 1;
+    return 1;
 }
 
 int main(int argc, const char * argv[]) {
     
-    pizza_t plainPizza;
-    plainPizza.getCost = &plainPizzaCost;
+    order_t myOrder;
+    myOrder.pizza.getCost = &plainPizzaCost;
+    printf ("My pizza costs %f\n", myOrder.pizza.getCost ((toppingDecorator_t *) &myOrder.pizza));
     
-    pizza_t thickCrustPizza;
-    thickCrustPizza.getCost = &thickCrustPizzaCost;
+    toppingDecorator_t toppings;
+    toppings.delegate = (pizza_t *) &myOrder;
     
-    toppingDecorator_t mozzarella;
-    mozzarella.tempPizza = plainPizza;
-    mozzarella.getCost = &mozzarellaCost;
+    topping_t mozzarella;
+    mozzarella.delegate = (pizza_t *) &myOrder;
+    mozzarella.methods.delegate = (pizza_t *)&mozzarellaCost;
+    printf ("My pizza costs %f\n", mozzarella.delegate->getCost ((toppingDecorator_t *) &mozzarella));
     
-    toppingDecorator_t tomato;
-    tomato.tempPizza = mozzarella.tempPizza;
-    tomato.getCost = &tomatoCost;
     
-    // now print the cost
-    printf ("A plain pizza costs %f\n", plainPizza.getCost ());
-    printf ("A mozzarella pizza costs %f\n", mozzarella.getCost (&mozzarella));
-    printf ("A tomato and mozzarella pizza costs %f\n", tomato.getCost (&mozzarella));
 }
