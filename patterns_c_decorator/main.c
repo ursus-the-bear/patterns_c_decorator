@@ -1,56 +1,51 @@
+//
+//  main.c
+//  klausur_c_delegation
+//
+//  Created by ursus on 14/03/16.
+//  Copyright © 2016 Ursus Schneider. All rights reserved.
+//
+
 #include <stdio.h>
-#include <stdlib.h>
 
-typedef struct _pizza pizza_t;
-typedef double (* getCost)(struct _pizza * self);
+typedef struct _sound sound_t;
+typedef struct _sound {
+    void (* makeSound) ();
+} sound_t;
 
-typedef struct _pizza {
-    getCost getCostFunc;
-} pizza_t;
+typedef struct _animal animal_t;
+typedef struct _animal {
+    sound_t sound;
+    void (* makeSound) (animal_t * self);
+    void (* setSound) (animal_t * self, void * new_sound);
+} animal_t;
 
-typedef struct _plainPizza {
-    pizza_t base;
-} plainPizza_t;
-
-typedef struct _toppingDecorator {
-    pizza_t base;
-    pizza_t * decorate;
-} toppingDecorator_t;
-
-// these are the pizzas
-double plainPizzaCost (plainPizza_t self) {
-    return 5;
+void animalSetSound (animal_t * self, void * new_sound) {
+    self->sound.makeSound = new_sound;
 }
 
-// these are the toppings
-double mozzarellaCost (toppingDecorator_t * self) {
-    return self->decorate->getCostFunc(self->decorate) + 3;
+void animalMakeSound (animal_t * self) {
+    self->sound.makeSound ();
 }
-double tomatoCost (toppingDecorator_t * self) {
-    return self->decorate->getCostFunc(self->decorate) + 2;
+
+void roar () {
+    printf ("Roar\n");
 }
-double peparoniCost (toppingDecorator_t * self) {
-    return self->decorate->getCostFunc(self->decorate) + 1;
+
+void meow () {
+    printf ("Meow\n");
 }
 
 int main(int argc, const char * argv[]) {
     
-    plainPizza_t plainPizza;
-    plainPizza.base.getCostFunc = (getCost) plainPizzaCost;
+    animal_t cat;
+    cat.setSound = &animalSetSound;
+    cat.makeSound = &animalMakeSound;
     
-    toppingDecorator_t mozzarella;
-    mozzarella.base.getCostFunc = (getCost) mozzarellaCost;
-    mozzarella.decorate = (pizza_t *) &plainPizza;
+    cat.setSound (&cat, &meow);
+    cat.makeSound (&cat);
     
-    toppingDecorator_t tomato;
-    tomato.base.getCostFunc = (getCost) tomatoCost;
-    tomato.decorate = (pizza_t *) &mozzarella;
+    cat.setSound (&cat, &roar);
+    cat.makeSound (&cat);
     
-    toppingDecorator_t salami;
-    salami.base.getCostFunc = (getCost) peparoniCost;
-    salami.decorate = (pizza_t *) &tomato;
-    
-    
-    printf ("A plain pizza %f\n", plainPizza.base.getCostFunc((pizza_t *) &plainPizza));
-    printf ("A salami pizza (incl. tomato and mozzarella) costs %f\n", salami.base.getCostFunc((pizza_t *) &salami));
 }
